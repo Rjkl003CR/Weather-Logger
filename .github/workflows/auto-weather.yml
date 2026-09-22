@@ -1,0 +1,32 @@
+name: Automated Weather Logger
+
+on:
+  schedule:
+    # Runs automatically every day at 08:00 UTC
+    - cron: '0 8 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run weather script
+        run: python weather.py
+        working-directory: log
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git add log/weather_log.md
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: automated daily weather log update" && git push)
